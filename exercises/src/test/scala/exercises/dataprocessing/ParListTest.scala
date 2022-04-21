@@ -3,8 +3,20 @@ package exercises.dataprocessing
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import TemperatureExercises._
+import exercises.dataprocessing.TemperatureNotebook.samples
 
 class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with ParListTestInstances {
+
+  test("parList should have correct size with list") {
+    forAll{ samples: List[Sample] =>
+      val sizePerPartition = math.ceil(samples.size.toDouble / 10).toInt
+
+      val parSamples: ParList[Sample] =
+        ParList.byPartitionSize(sizePerPartition, samples)
+
+      assert(parSamples.partitions.map(_.size).sum == samples.size)
+    }
+  }
 
   ignore("minSampleByTemperature example") {
     val samples = List(
@@ -19,8 +31,7 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     val parSamples = ParList.byPartitionSize(3, samples)
 
     assert(
-      minSampleByTemperature(parSamples) ==
-        Some(Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1))
+      minSampleByTemperature(parSamples).contains(Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1))
     )
   }
 
