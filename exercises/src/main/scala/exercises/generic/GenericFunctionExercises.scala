@@ -139,7 +139,7 @@ object GenericFunctionExercises {
       }
   }
 
-  val intDecoder: JsonDecoder[Int] = (json: Json) => json.toInt
+  implicit val intDecoder: JsonDecoder[Int] = (json: Json) => json.toInt
 
   val stringDecoder: JsonDecoder[String] = (json: Json) => if (json.startsWith("\"") && json.endsWith("\"")) // check it starts and ends with `"`
     json.substring(1, json.length - 1)
@@ -208,13 +208,12 @@ object GenericFunctionExercises {
   // * "\"null\"" into a Some("null")
   // * "null" into "None"
   // Note: you may need to change the function signature
-  def optionDecoder[A](implicit decoder: JsonDecoder[A]): JsonDecoder[Option[A]] =
-  {
+  def optionDecoder[A](implicit decoder: JsonDecoder[A]): JsonDecoder[Option[A]] = {
     case "null" => None
-    case other  => Some(decoder.decode(other))
+    case other => Some(decoder.decode(other))
   }
 
   // 3g. `JsonDecoder` currently throws an exception if the input is not a valid JSON.
   // How could you change the API so that it doesn't happen anymore?
-
+  val optionIntDecoder: JsonDecoder[Option[Int]] = optionDecoder[Int]
 }
