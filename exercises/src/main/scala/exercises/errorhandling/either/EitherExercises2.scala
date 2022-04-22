@@ -26,10 +26,10 @@ object EitherExercises2 {
   // validateCountry("UK")  == Left(InvalidFormat("UK"))
   // validateCountry("ARG") == Left(NotSupported("ARG")), ARG represents Argentina
   def validateCountry(countryCode: String): Either[FormError, Country] =
-    if (countryCode.capitalize != countryCode) {
-      Left(InvalidFormat(countryCode))
-    } else {
+    if (countryCode.length == 3 && countryCode.forall(c => c.isLetter && c.isUpper)) {
       Country.all.find(_.code == countryCode).toRight(NotSupported(countryCode))
+    } else {
+      Left(InvalidFormat(countryCode))
     }
 
   // 2. Implement `checkUsernameSize` which checks if a username is

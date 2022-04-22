@@ -26,7 +26,12 @@ sealed trait Validation[+E, +A] {
   // 1.valid.zip("error2".invalid)          == Invalid(NEL("error2"))
   // 1.valid.zip("Hello".valid)             == Valid((1, "Hello"))
   def zip[E2 >: E, Other](other: Validation[E2, Other]): Validation[E2, (A, Other)] =
-    ???
+    (this, other) match {
+      case (Valid(_), Invalid(e)) => Invalid(e)
+      case (Invalid(e1), Invalid(e2)) => Invalid(e1 ++ e2)
+      case (Invalid(e), Valid(_)) => Invalid(e)
+      case (Valid(v1), Valid(v2)) => Valid((v1, v2))
+    }
 
   // alias for `zip` followed by `map`.
   def zipWith[E2 >: E, Other, Next](other: Validation[E2, Other])(
@@ -80,7 +85,7 @@ object Validation {
   // Accumulate all errors.
   // sequence(List(1.invalid, 2.valid, 3.invalid)) == Invalid(Nel(1,3))
   def sequence[E, A](validations: List[Validation[E, A]]): Validation[E, List[A]] =
-    ???
+    validations.foldLeft(Valid(List.empty[A]): Validation[E, List[A]]){(state, valid) => state.zipWith(valid){ case (lst, other) => other :: lst}}.map(_.reverse)
 
   // Alias for map + sequence
   def traverse[E, A, Next](values: List[A])(update: A => Validation[E, Next]): Validation[E, List[Next]] =
