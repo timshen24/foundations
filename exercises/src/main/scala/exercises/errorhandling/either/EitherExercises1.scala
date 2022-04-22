@@ -3,6 +3,8 @@ package exercises.errorhandling.either
 import exercises.errorhandling.option.OptionExercises.{Email, User, UserId}
 import exercises.errorhandling.either.EitherExercises1.UserEmailError._
 
+import scala.util.control.NoStackTrace
+
 object EitherExercises1 {
 
   // 1. Implement `getUserEmail` which looks up the email address of a user.
@@ -19,14 +21,20 @@ object EitherExercises1 {
   // getUserEmail(111, users) == Left("User 111 is missing")
   // getUserEmail(444, users) == Left("User 444 has no email address")
   def getUserEmail(userId: UserId, users: Map[UserId, User]): Either[String, Email] =
-    ???
+//    users.get(userId).toRight(s"User ${userId.value} is missing").map(_.email).flatMap(_.toRight(s"User ${userId.value} has no email address"))
+    for {
+      user <- users.get(userId).toRight(s"User ${userId.value} is missing")
+      email <- user.email.toRight(s"User ${userId.value} has no email address")
+    } yield email
 
   // 2. Refactor `getUserEmail` so that it uses an `UserEmailError` instead of `String`
   // in the error channel.
-  sealed trait UserEmailError
+  sealed abstract class UserEmailError(message: String) extends NoStackTrace {
+    override def getMessage: String = message
+  }
   object UserEmailError {
-    case object UserNotFound  extends UserEmailError
-    case object EmailNotFound extends UserEmailError
+    case class UserNotFound(userId: UserId)  extends UserEmailError(s"User $userId is missing")
+    case class EmailNotFound(userId: UserId) extends UserEmailError(s"User $userId has no email")
   }
   // In Scala 3,
   // enum UserEmailError {

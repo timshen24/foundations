@@ -2,6 +2,8 @@ package exercises.errorhandling.option
 
 import exercises.errorhandling.option.OptionExercises.Role._
 
+import scala.::
+
 object OptionExercises {
 
   sealed trait Role
@@ -25,7 +27,11 @@ object OptionExercises {
   // Note: Once you have implemented `getAccountId`, try to move it
   //       inside the `Role` class.
   def getAccountId(role: Role): Option[AccountId] =
-    ???
+    role match {
+      case Reader(accountId, _) => Some(accountId)
+      case Editor(accountId, _) => Some(accountId)
+      case Role.Admin => None
+    }
 
   case class User(id: UserId, name: String, role: Role, email: Option[Email])
   case class UserId(value: Long)
@@ -46,7 +52,7 @@ object OptionExercises {
   // getUserEmail(444, users) == None // no email
   // Note: You can use the method `get` on a `Map` to lookup a value by key
   def getUserEmail(userId: UserId, users: Map[UserId, User]): Option[Email] =
-    ???
+    users.get(userId).flatMap(_.email)
 
   // 3. Implement `getAccountIds` which returns all the account ids associated
   // with the users. If a user has no account id (e.g. `Admin`), ignore them.
@@ -60,7 +66,7 @@ object OptionExercises {
   // returns List(555, 741)
   // Note: In case two or more users have the same account id, `getAccountIds` only returns one.
   def getAccountIds(users: List[User]): List[AccountId] =
-    ???
+    users.flatMap(user => getAccountId(user.role)).distinct
 
   // 4. Implement `checkAllEmails` which checks if all users have an email and returns them.
   // If one or more users don't have an email `checkAllEmails` returns false.
@@ -78,14 +84,15 @@ object OptionExercises {
   // returns None
   // Note: You may want to use `sequence` or `traverse` defined below.
   def checkAllEmails(users: List[User]): Option[List[Email]] =
-    ???
+    users.traverse(_.email)
 
   // 5. If all options are defined (`Some`), `sequence` extracts all the values in a List.
   // If one or more options are None, `sequence` returns None.
   // sequence(List(Some(1), Some(2), Some(3))) == Some(List(1, 2, 3))
   // sequence(List(Some(1), None   , Some(3))) == None
   def sequence[A](options: List[Option[A]]): Option[List[A]] =
-    ???
+    options.foldLeft(Option(List.empty[A])){(list, opt) => list.zip(opt).map {case (lst, opt) => opt :: lst}}.map(_.reverse)
+
 
   // Alias for `map` followed by `sequence`
   def traverse[A, B](values: List[A])(transform: A => Option[B]): Option[List[B]] =
@@ -103,5 +110,9 @@ object OptionExercises {
   // Note: Once you have implemented `getAccountId`, try to move it
   //       inside the `Role` class.
   def asEditor(role: Role): Option[Editor] =
-    ???
+    role match {
+      case Reader(accountId, premiumUser) => None
+      case e @ Editor(accountId, favoriteFont) => Some(e)
+      case Role.Admin => None
+    }
 }
